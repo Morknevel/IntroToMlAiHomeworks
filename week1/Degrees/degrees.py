@@ -76,14 +76,14 @@ def main():
 
 def shortest_path(source, target):
     start = Node(state=source, parent=None, action=None)
-    frontier = QueueFrontier()  
+    frontier = QueueFrontier()
     frontier.add(start)
-    
+
     explored = set()
-    
+
     while not frontier.empty():
         node = frontier.remove()
-        
+
         if node.state == target:
             path = []
             while node.parent is not None:
@@ -91,10 +91,47 @@ def shortest_path(source, target):
                 node = node.parent
             path.reverse()
             return path
-        
+
         explored.add(node.state)
-        
+
         for movie_id, person_id in neighbors_for_person(node.state):
             if not frontier.contains_state(person_id) and person_id not in explored:
                 child = Node(state=person_id, parent=node, action=movie_id)
                 frontier.add(child)
+
+    return None
+
+
+def person_id_for_name(name):
+    person_ids = list(names.get(name.lower(), set()))
+    if len(person_ids) == 0:
+        return None
+    elif len(person_ids) > 1:
+        print(f"Which '{name}'?")
+        for person_id in person_ids:
+            person = people[person_id]
+            name = person["name"]
+            birth = person["birth"]
+            print(f"ID: {person_id}, Name: {name}, Birth: {birth}")
+        try:
+            person_id = input("Intended Person ID: ")
+            if person_id in person_ids:
+                return person_id
+        except ValueError:
+            pass
+        return None
+    else:
+        return person_ids[0]
+
+
+def neighbors_for_person(person_id):
+    movie_ids = people[person_id]["movies"]
+    neighbors = set()
+    for movie_id in movie_ids:
+        for person_id in movies[movie_id]["stars"]:
+            neighbors.add((movie_id, person_id))
+    return neighbors
+
+
+if __name__ == "__main__":
+    main()
